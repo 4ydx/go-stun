@@ -179,7 +179,7 @@ func (srv *Server) serve(rw ResponseWriter, r *Message, err error) error {
 	} else {
 		srv.ServeSTUN(rw, r)
 	}
-	Log.Print("served")
+	Log.Printf("served %+v", r)
 	return nil
 }
 
