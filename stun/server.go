@@ -6,8 +6,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
-	"log/syslog"
 	"net"
+	"os"
 	"time"
 )
 
@@ -86,11 +86,13 @@ func (srv *Server) ListenAndServeTLS(network, addr, certFile, keyFile string) er
 // ServePacket receives incoming packets on the packet-oriented network listener and calls handler to serve STUN requests.
 // Multiple goroutines may invoke ServePacket on the same PacketConn simultaneously.
 func (srv *Server) ServePacket(l net.PacketConn) error {
-	var err error
-	Log, err = syslog.NewLogger(syslog.LOG_INFO, log.Llongfile)
+	lf, err := os.Create("stun.log")
 	if err != nil {
 		panic(err)
 	}
+	defer lf.Close()
+	Log = log.New(lf, "", log.Llongfile)
+
 	enc := NewEncoder(srv.Config)
 	dec := NewDecoder(srv.Config)
 	buf := make([]byte, bufferSize)
@@ -109,11 +111,13 @@ func (srv *Server) ServePacket(l net.PacketConn) error {
 // Serve accepts incoming connection on the listener and calls handler to serve STUN requests.
 // Multiple goroutines may invoke Serve on the same Listener simultaneously.
 func (srv *Server) Serve(l net.Listener) error {
-	var err error
-	Log, err = syslog.NewLogger(syslog.LOG_INFO, log.Llongfile)
+	lf, err := os.Create("stun.log")
 	if err != nil {
 		panic(err)
 	}
+	defer lf.Close()
+	Log = log.New(lf, "", log.Llongfile)
+
 	for {
 		c, err := l.Accept()
 		if err != nil {
