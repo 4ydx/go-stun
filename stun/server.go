@@ -5,9 +5,13 @@ import (
 	"crypto/tls"
 	"encoding/hex"
 	"fmt"
+	"log"
+	"log/syslog"
 	"net"
 	"time"
 )
+
+var Log *log.Logger
 
 // A Handler handles a STUN message.
 type Handler interface {
@@ -82,6 +86,11 @@ func (srv *Server) ListenAndServeTLS(network, addr, certFile, keyFile string) er
 // ServePacket receives incoming packets on the packet-oriented network listener and calls handler to serve STUN requests.
 // Multiple goroutines may invoke ServePacket on the same PacketConn simultaneously.
 func (srv *Server) ServePacket(l net.PacketConn) error {
+	var err error
+	Log, err = syslog.NewLogger(syslog.LOG_INFO, log.Llongfile)
+	if err != nil {
+		panic(err)
+	}
 	enc := NewEncoder(srv.Config)
 	dec := NewDecoder(srv.Config)
 	buf := make([]byte, bufferSize)
@@ -100,6 +109,11 @@ func (srv *Server) ServePacket(l net.PacketConn) error {
 // Serve accepts incoming connection on the listener and calls handler to serve STUN requests.
 // Multiple goroutines may invoke Serve on the same Listener simultaneously.
 func (srv *Server) Serve(l net.Listener) error {
+	var err error
+	Log, err = syslog.NewLogger(syslog.LOG_INFO, log.Llongfile)
+	if err != nil {
+		panic(err)
+	}
 	for {
 		c, err := l.Accept()
 		if err != nil {
@@ -157,7 +171,7 @@ func (srv *Server) serve(rw ResponseWriter, r *Message, err error) error {
 				},
 			})
 		}
-		// TODO: log error
+		Log.Print(err)
 		return nil
 	}
 	if h := srv.Handler; h != nil {
@@ -165,6 +179,7 @@ func (srv *Server) serve(rw ResponseWriter, r *Message, err error) error {
 	} else {
 		srv.ServeSTUN(rw, r)
 	}
+	Log.Print("served")
 	return nil
 }
 
