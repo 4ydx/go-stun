@@ -185,6 +185,8 @@ func (srv *Server) serve(rw ResponseWriter, r *Message, err error) error {
 
 // ServeSTUN responds to the simple STUN binding request.
 func (srv *Server) ServeSTUN(rw ResponseWriter, r *Message) {
+	Log.Printf("Remote %+v", rw.RemoteAddr())
+	Log.Printf("Origin %+v", rw.LocalAddr())
 	switch r.Method {
 	case MethodBinding:
 		rw.WriteMessage(&Message{
