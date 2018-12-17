@@ -25,6 +25,9 @@ type Config struct {
 
 	// Software is a value for SOFTWARE attribute.
 	Software string
+
+	// WriteLogToStdErr indicates whether or not logs should be written to stderr.
+	WriteLogToStdErr bool
 }
 
 func (c *Config) getAuthKey(attrs Attributes) ([]byte, error) {

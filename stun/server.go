@@ -86,12 +86,17 @@ func (srv *Server) ListenAndServeTLS(network, addr, certFile, keyFile string) er
 // ServePacket receives incoming packets on the packet-oriented network listener and calls handler to serve STUN requests.
 // Multiple goroutines may invoke ServePacket on the same PacketConn simultaneously.
 func (srv *Server) ServePacket(l net.PacketConn) error {
-	lf, err := os.Create("stun.log")
-	if err != nil {
-		panic(err)
+	if srv.Config.WriteLogToStdErr {
+		Log = log.New(os.Stderr, "", log.Llongfile)
+	} else {
+		lf, err := os.Create("stun.log")
+		if err != nil {
+			panic(err)
+		}
+		defer lf.Close()
+		Log = log.New(lf, "", log.Llongfile)
 	}
-	defer lf.Close()
-	Log = log.New(lf, "", log.Llongfile)
+	Log.Print("Starting...")
 
 	enc := NewEncoder(srv.Config)
 	dec := NewDecoder(srv.Config)
@@ -111,12 +116,17 @@ func (srv *Server) ServePacket(l net.PacketConn) error {
 // Serve accepts incoming connection on the listener and calls handler to serve STUN requests.
 // Multiple goroutines may invoke Serve on the same Listener simultaneously.
 func (srv *Server) Serve(l net.Listener) error {
-	lf, err := os.Create("stun.log")
-	if err != nil {
-		panic(err)
+	if srv.Config.WriteLogToStdErr {
+		Log = log.New(os.Stderr, "", log.Llongfile)
+	} else {
+		lf, err := os.Create("stun.log")
+		if err != nil {
+			panic(err)
+		}
+		defer lf.Close()
+		Log = log.New(lf, "", log.Llongfile)
 	}
-	defer lf.Close()
-	Log = log.New(lf, "", log.Llongfile)
+	Log.Print("Starting...")
 
 	for {
 		c, err := l.Accept()
